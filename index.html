@@ -507,7 +507,12 @@ async function clearRec(){
 }
 
 applyUI();
-loadR();
+loadR();<script>
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW registrado'))
+      .catch(e => console.log('SW error:', e));
+  }
 </script>
 </body>
 </html>
