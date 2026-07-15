@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,sans-serif;color:#f0f0f0;background:#0d0d0d;min-height:100vh;overflow-x:hidden}
+.screen{display:none;flex-direction:column;align-items:center;padding:24px 18px 36px;min-height:100vh;position:relative}
+.screen.active{display:flex}
+.btn{width:100%;padding:15px 20px;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;border:1px solid #2a2a2a;background:#1a1a1a;color:#f0f0f0;margin-bottom:10px;text-align:center;transition:background .15s,transform .1s}
+.btn:active{transform:scale(0.97)}
+.btn-info{border:1.5px solid #4f8ef7;color:#4f8ef7;background:rgba(79,142,247,.08)}
+.btn-info:active{background:rgba(79,142,247,.18)}
+
+/* START */
+.s-icon{font-size:56px;color:#4f8ef7;margin:44px 0 14px;animation:floatIcon 3s ease-in-out infinite}
+@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.game-title{font-size:32px;font-weight:700;letter-spacing:-1.5px;margin-bottom:6px;background:linear-gradient(135deg,#4f8ef7,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.game-sub{font-size:14px;color:#666;margin-bottom:32px;text-align:center}
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;gap:0;border-radius:12px;overflow:hidden;border:1px solid #2a2a2a;margin-bottom:28px;width:100%;max-width:280px}
+.lang-btn{flex:1;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;border:none;background:#1a1a1a;color:#555;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.lang-btn.active{background:#4f8ef7;color:#fff}
+.lang-flag{font-size:18px}
+
+/* HUD */
+.g-hdr{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:14px;padding-top:4px}
+.badge{font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;background:#1a1a1a;border:1px solid #2a2a2a;color:#888;display:flex;align-items:center;gap:5px}
+.badge-info{background:rgba(79,142,247,.12);color:#4f8ef7;border-color:rgba(79,142,247,.3)}
+.badge-warn{background:rgba(239,159,39,.12);color:#ef9f27;border-color:rgba(239,159,39,.3)}
+.lvl-bar-wrap{width:100%;height:3px;background:#1e1e1e;border-radius:2px;margin-bottom:18px;overflow:hidden}
+.lvl-bar{height:100%;background:linear-gradient(90deg,#4f8ef7,#a78bfa);border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* WORD CARD */
+.word-card{width:100%;background:#141414;border:1px solid #222;border-radius:20px;padding:30px 20px 24px;text-align:center;margin-bottom:14px;min-height:152px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;overflow:hidden;transition:border-color .2s,background .2s,transform .15s}
+.word-card::before{content:'';position:absolute;inset:0;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none}
+.word-card.ok{border-color:#22c55e;background:rgba(34,197,94,.07);animation:cardPop .35s cubic-bezier(.4,0,.2,1)}
+.word-card.ok::before{background:radial-gradient(circle at 50% 50%,rgba(34,197,94,.15),transparent 70%);opacity:1}
+.word-card.fail{border-color:#ef4444;background:rgba(239,68,68,.07);animation:shake .4s cubic-bezier(.4,0,.2,1)}
+@keyframes cardPop{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+.word-text{font-size:clamp(22px,8vw,40px);font-weight:700;letter-spacing:5px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;min-height:50px}
+.ch{transition:color .06s,transform .06s;display:inline-block}
+.ch-ok{color:#22c55e;animation:charPop .15s ease}
+.ch-err{color:#ef4444;animation:charErr .15s ease}
+@keyframes charPop{0%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes charErr{0%{transform:translateX(-3px)}50%{transform:translateX(3px)}100%{transform:translateX(0)}}
+
+.timer-num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;transition:color .2s;letter-spacing:-1px}
+.t-safe{color:#555}.t-warn{color:#ef9f27}.t-danger{color:#ef4444;animation:pulse .5s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.rec-row{font-size:12px;color:#444}
+.rec-val{color:#4f8ef7;font-weight:600}
+
+.bar-wrap{width:100%;height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden;margin-bottom:14px}
+.bar-fill{height:100%;width:0%;border-radius:3px;transition:background .4s}
+
+#word-input{width:100%;padding:15px 16px;font-size:20px;font-weight:600;text-align:center;letter-spacing:4px;text-transform:uppercase;border-radius:16px;margin-bottom:12px;background:#141414;border:1px solid #2a2a2a;color:#f0f0f0;outline:none;transition:border-color .2s,box-shadow .2s}
+#word-input:focus{border-color:#4f8ef7;box-shadow:0 0 0 3px rgba(79,142,247,.12)}
+
+.result-row{width:100%;text-align:center;padding:14px 16px;border-radius:16px;background:#141414;border:1px solid #222;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.result-row.show{opacity:1;transform:translateY(0)}
+.r-status{font-size:19px;font-weight:700}
+.r-bottom{display:flex;align-items:center;justify-content:center;gap:10px}
+.r-time{font-size:14px;color:#555;font-variant-numeric:tabular-nums}
+.r-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:8px;background:rgba(239,159,39,.15);color:#ef9f27;border:1px solid rgba(239,159,39,.3)}
+
+/* LEVEL UP OVERLAY */
+#lvlup-overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+#lvlup-overlay.show{opacity:1;pointer-events:all}
+.luo-inner{text-align:center;animation:lvlPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes lvlPop{0%{transform:scale(.7) translateY(20px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+.luo-label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:3px;margin-bottom:12px}
+.luo-num{font-size:96px;font-weight:800;line-height:1;background:linear-gradient(135deg,#4f8ef7,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(79,142,247,.5))}
+.luo-sub{font-size:15px;color:#888;margin-top:10px}
+
+/* PARTÍCULAS */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.particle{position:absolute;border-radius:50%;animation:particleFly 1s ease-out forwards}
+@keyframes particleFly{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(0)}}
+
+/* GAME OVER */
+.over-top{width:100%;text-align:center;margin-bottom:20px;padding-top:8px}
+.over-icon{font-size:44px;color:#ef4444;margin-bottom:12px;display:block;animation:shake .5s ease}
+.over-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.over-word{font-size:clamp(20px,7vw,34px);font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#ef4444;margin:12px 0;animation:cardPop .4s ease}
+.over-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.over-stat{padding:10px 16px;background:#141414;border:1px solid #222;border-radius:14px;font-size:12px;font-weight:500;color:#666;text-align:center}
+.over-stat strong{display:block;font-size:20px;font-weight:700;color:#f0f0f0}
+.session-list{width:100%;overflow-y:auto;max-height:32vh;margin-bottom:16px}
+.sess-hdr{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-left:4px}
+.si{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#141414;border:1px solid #1e1e1e;border-radius:12px;margin-bottom:6px}
+.si-word{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.si-right{display:flex;align-items:center;gap:8px}
+.si-status{font-size:11px;font-weight:600}
+.si-time{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:#4f8ef7}
+.si-nr{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(239,159,39,.15);color:#ef9f27;border:1px solid rgba(239,159,39,.3)}
+
+/* RÉCORDS */
+.rec-hdr{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:20px;padding-top:6px}
+.rec-title{font-size:18px;font-weight:700}
+.rec-list-wrap{width:100%;overflow-y:auto}
+.rec-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#141414;border:1px solid #1e1e1e;border-radius:14px;margin-bottom:8px}
+.ri-word{font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.ri-time{font-size:14px;color:#4f8ef7;font-weight:600;font-variant-numeric:tabular-nums}
+.ri-rank{font-size:11px;color:#444;margin-right:6px}
+.no-rec{font-size:14px;color:#555;text-align:center;padding:52px 0}
+.home-btn{background:none;border:none;color:#555;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:6px 0;margin-top:auto}
+.danger-btn{background:none;border:none;color:#ef4444;font-size:14px;cursor:pointer;padding:6px 0}
+
+/* lang chip en game */
+.lang-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:#1a1a1a;border:1px solid #2a2a2a;color:#555;cursor:pointer;transition:background .15s}
+.lang-chip:active{background:#222}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<div id="lvlup-overlay">
+  <div class="luo-inner">
+    <div class="luo-label" id="luo-label">¡Subiste al nivel!</div>
+    <div class="luo-num" id="luo-num">2</div>
+    <div class="luo-sub" id="luo-sub"></div>
+  </div>
+</div>
+
+<!-- START -->
+<div id="s-start" class="screen active">
+  <i class="ti ti-keyboard s-icon"></i>
+  <div class="game-title">TypeBlitz</div>
+  <div class="game-sub" id="start-sub">5 segundos por palabra. ¿Cuánto aguantas?</div>
+
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="lb-es" onclick="setLang('es')">
+      <span class="lang-flag">🇲🇽</span> Español
+    </button>
+    <button class="lang-btn" id="lb-en" onclick="setLang('en')">
+      <span class="lang-flag">🇺🇸</span> English
+    </button>
+  </div>
+
+  <button class="btn btn-info" onclick="startGame()" id="btn-play"><i class="ti ti-player-play" style="vertical-align:-2px;margin-right:4px"></i>Jugar</button>
+  <button class="btn" onclick="showRec()" id="btn-rec"><i class="ti ti-trophy" style="vertical-align:-2px;margin-right:4px"></i>Récords</button>
+</div>
+
+<!-- GAME -->
+<div id="s-game" class="screen">
+  <div class="g-hdr">
+    <span class="badge badge-info"><i class="ti ti-trending-up" style="font-size:13px"></i><span id="lbl-level">Nivel</span> <span id="g-lv">1</span></span>
+    <span style="font-size:12px;color:#555" id="g-prog">0 / 5</span>
+    <span class="badge badge-warn"><i class="ti ti-flame" style="font-size:13px"></i><span id="g-str">0</span></span>
+  </div>
+  <div class="lvl-bar-wrap"><div class="lvl-bar" id="g-lbar" style="width:0%"></div></div>
+  <div class="word-card" id="wcard">
+    <div class="word-text" id="wdisplay"></div>
+    <div class="timer-num t-safe" id="g-tim">5.000s</div>
+    <div class="rec-row" id="g-rec"></div>
+  </div>
+  <div class="bar-wrap"><div class="bar-fill" id="g-bar"></div></div>
+  <input type="text" id="word-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="onType()"/>
+  <div class="result-row" id="g-res">
+    <div class="r-status" id="g-status"></div>
+    <div class="r-bottom">
+      <span class="r-time" id="g-rtime"></span>
+      <span class="r-badge" id="g-rbadge" style="display:none"></span>
+    </div>
+  </div>
+  <button class="home-btn" onclick="goHome()" id="btn-home"><i class="ti ti-home"></i>Inicio</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="s-over" class="screen">
+  <div class="over-top">
+    <i class="ti ti-clock-x over-icon"></i>
+    <div class="over-title" id="ov-title">Tiempo agotado</div>
+    <div class="over-word" id="ov-word"></div>
+    <div class="over-stats">
+      <div class="over-stat"><strong id="ov-words">0</strong><span id="lbl-words">palabras</span></div>
+      <div class="over-stat"><strong id="ov-lv">1</strong><span id="lbl-lvl">nivel</span></div>
+      <div class="over-stat"><strong id="ov-str">0</strong><span id="lbl-streak">racha máx</span></div>
+    </div>
+  </div>
+  <div class="session-list" id="sess-list"></div>
+  <button class="btn btn-info" onclick="startGame()" id="btn-again"><i class="ti ti-refresh" style="vertical-align:-2px;margin-right:4px"></i>Jugar de nuevo</button>
+  <button class="btn" onclick="showRec()" id="btn-recs2"><i class="ti ti-trophy" style="vertical-align:-2px;margin-right:4px"></i>Ver todos los récords</button>
+  <button class="home-btn" onclick="showScreen('s-start')" style="margin-top:8px" id="btn-home2"><i class="ti ti-home"></i>Inicio</button>
+</div>
+
+<!-- RÉCORDS -->
+<div id="s-rec" class="screen">
+  <div class="rec-hdr">
+    <button class="home-btn" style="margin-top:0" onclick="showScreen('s-start')"><i class="ti ti-arrow-left"></i><span id="lbl-back">Inicio</span></button>
+    <div class="rec-title" id="lbl-recstitle">Récords</div>
+    <button class="danger-btn" onclick="clearRec()"><i class="ti ti-trash"></i></button>
+  </div>
+  <div class="rec-list-wrap" id="rec-list"></div>
+</div>
+
+<script>
+// ── PALABRAS ──
+const WORDS = {
+  es: {
+    1:['sol','mar','paz','luz','pan','sal','rey','ojo','rio','voz','pez','ala','eco','fan','rap','pop','web','kit','gas','don'],
+    2:['gato','luna','amor','taco','mesa','boca','mano','beso','pato','cafe','sopa','meme','chat','rock','jazz','lobo','rana','puma','maiz','mole'],
+    3:['playa','tango','chile','pizza','salsa','cobra','tigre','mambo','novio','perro','nacho','guapo','banda','chela','rumba','panda','gallo','viral','chido','cuate'],
+    4:['futbol','fiesta','pueblo','cumbia','dulces','paleta','musica','helado','tomate','banana','birria','mezcal','azteca','charro','pulque','cenote','volcan','chamba','comida','quesos'],
+    5:['tequila','cazuela','calamar','karaoke','ajedrez','cancion','marimba','salsero','tamales','mercado','corrido','beisbol','festejo','comedia','volador','deporte','paletas','cholula'],
+    6:['mariachi','tortilla','abuelita','chamarra','aguacate','tropical','carnaval','ranchero','folklore','guitarra','chapulin','palomita','sombrero','tamalero','danzante','cantante'],
+    7:['discoteca','michelada','enchilada','calaveras','papalotes','tlacuache','pozoleria','chilangos','aventuras','nopalitos'],
+    8:['videojuego','telenovela','revolucion','chicharron','xochimilco','tarahumara','tlatelolco','colectivos','luchadores','chamaquito'],
+    9:['chilaquiles','guadalajara','mesoamerica','quinceañera'],
+   10:['tenochtitlan','quetzalcoatl','independencia','tlaxcaltecas','extraordinario'],
+  },
+  en: {
+    1:['cat','dog','sun','run','fly','joy','sky','hot','map','cup','bug','log','tip','fog','gym','jam','key','lip','mud','net'],
+    2:['fire','jump','swim','cake','blue','frog','game','glow','king','life','moon','name','open','park','quiz','rain','song','time','wave','zero'],
+    3:['beach','brain','candy','dance','earth','flair','ghost','happy','input','jazzy','kneel','laser','magic','nerve','ocean','pixel','queen','rebel','smile','tiger'],
+    4:['ankle','bacon','blaze','bride','burst','chaos','crisp','dozen','eagle','feast','flame','globe','grace','hyper','ivory','jewel','karma','lemon','maple','ninja'],
+    5:['battle','burger','castle','cherry','cobalt','dancer','forest','frenzy','galaxy','hammer','hybrid','impact','jungle','kaleid','league','lizard','marvel','mystic','napkin','origin'],
+    6:['amazing','android','balloon','cabinet','captive','crystal','destiny','dolphin','emperor','fantasy','fiction','glasses','history','insight','journey','kitchen','leopard','maximum'],
+    7:['absolute','baseball','birthday','blizzard','capsule','champion','creative','database','discount','elephant','festival','football','grateful','hospital','infinite','keyboard'],
+    8:['adventure','algorithm','beautiful','butterfly','chocolate','community','dangerous','emergency','fabulous','happiness','important','jellyfish','knowledge','lightning'],
+    9:['basketball','california','conclusion','dictionary','everything','friendship','generation','helicopter','impossible','journalism'],
+   10:['acceleration','biodiversity','collaboration','communication','conversation','demonstration','entertainment','extraordinary','illustration','independence'],
+  }
+};
+
+// ── TEXTOS UI ──
+const UI = {
+  es: {
+    sub:'5 segundos por palabra. ¿Cuánto aguantas?',
+    play:'Jugar', rec:'Récords', home:'Inicio', back:'Inicio',
+    level:'Nivel', words:'palabras', lvl:'nivel', streak:'racha máx',
+    timeout:'Tiempo agotado', again:'Jugar de nuevo', allrec:'Ver todos los récords',
+    recstitle:'Récords', noRec:'Aún no hay récords.<br>¡Juega para registrar tus tiempos!',
+    placeholder:'escribe aquí…', bestTime:'Récord', noRecord:'sin récord aún',
+    newRecord:'¡Nuevo récord!', sessionHdr:'Palabras en esta partida',
+    lvlLabel:'¡Subiste al nivel!',
+    lvlSubs:['¡Las palabras se ponen más difíciles…','¡Vamos, no pares!','¡Tú puedes!','¡Increíble, sigue así!','¡Eres imparable!'],
+    clearConfirm:'¿Borrar todos los récords?',
+  },
+  en: {
+    sub:'5 seconds per word. How long can you last?',
+    play:'Play', rec:'Records', home:'Home', back:'Home',
+    level:'Level', words:'words', lvl:'level', streak:'max streak',
+    timeout:'Time\'s up!', again:'Play again', allrec:'See all records',
+    recstitle:'Records', noRec:'No records yet.<br>Play to register your times!',
+    placeholder:'type here…', bestTime:'Best', noRecord:'no record yet',
+    newRecord:'New record!', sessionHdr:'Words this round',
+    lvlLabel:'Level up!',
+    lvlSubs:['Words are getting harder…','Keep going, don\'t stop!','You got this!','Incredible, keep it up!','You\'re unstoppable!'],
+    clearConfirm:'Delete all records?',
+  }
+};
+
+// ── STATUS ──
+const ST = {
+  es:[
+    {max:1000,texts:['¡INCREÍBLE!','¡RELÁMPAGO!','¡ULTRA SONIC!','¡FLASH!'],color:'#22c55e'},
+    {max:1800,texts:['¡Excelente!','¡Perfecto!','¡Lo netas!','¡Genial!'],color:'#4ade80'},
+    {max:2800,texts:['¡Bien hecho!','¡Muy bien!','¡Buen ritmo!','¡A todo dar!'],color:'#4f8ef7'},
+    {max:3800,texts:['¡Casi!','¡Ándale!','¡No está mal!','¡Sigue así!'],color:'#ef9f27'},
+    {max:4600,texts:['¡Por poco!','¡Más rápido!','¡Apúrate!','¡Al límite!'],color:'#f97316'},
+    {max:5001,texts:['¡De milagro!','¡Justo a tiempo!','¡Uf, casi!','¡Al tiro!'],color:'#ef4444'},
+  ],
+  en:[
+    {max:1000,texts:['INSANE!','LIGHTNING!','ULTRA SONIC!','FLASH!'],color:'#22c55e'},
+    {max:1800,texts:['Excellent!','Perfect!','Amazing!','Awesome!'],color:'#4ade80'},
+    {max:2800,texts:['Well done!','Nice work!','Good pace!','Solid!'],color:'#4f8ef7'},
+    {max:3800,texts:['Almost!','Not bad!','Keep trying!','Close!'],color:'#ef9f27'},
+    {max:4600,texts:['Too slow!','Speed up!','Hurry!','On the edge!'],color:'#f97316'},
+    {max:5001,texts:['Barely made it!','Just in time!','Phew!','By a hair!'],color:'#ef4444'},
+  ]
+};
+function getStatus(ms){
+  const tiers=ST[lang];
+  const t=tiers.find(s=>ms<s.max)||tiers[tiers.length-1];
+  return{text:t.texts[Math.floor(Math.random()*t.texts.length)],color:t.color};
+}
+
+// ── ESTADO ──
+const PER_LV=5, LIMIT=5000;
+let lang='es';
+let lv=1,wil=0,streak=0,maxStreak=0,cw='',ts=0,iv=null,recs={},locked=false;
+let usedWords=new Set(),sessionWords=[];
+
+const _mem={};
+const store=window.storage||{async get(k){return _mem[k]?{value:_mem[k]}:null},async set(k,v){_mem[k]=v;return{key:k,value:v}}};
+async function loadR(){try{const r=await store.get('tb6_'+lang);if(r)recs=JSON.parse(r.value)}catch(e){recs={}}}
+async function saveR(){try{await store.set('tb6_'+lang,JSON.stringify(recs))}catch(e){}}
+
+// ── IDIOMA ──
+function setLang(l){
+  lang=l;
+  document.getElementById('lb-es').classList.toggle('active',l==='es');
+  document.getElementById('lb-en').classList.toggle('active',l==='en');
+  applyUI();
+}
+
+function applyUI(){
+  const u=UI[lang];
+  document.getElementById('start-sub').textContent=u.sub;
+  document.getElementById('btn-play').innerHTML=`<i class="ti ti-player-play" style="vertical-align:-2px;margin-right:4px"></i>${u.play}`;
+  document.getElementById('btn-rec').innerHTML=`<i class="ti ti-trophy" style="vertical-align:-2px;margin-right:4px"></i>${u.rec}`;
+  document.getElementById('btn-home').innerHTML=`<i class="ti ti-home"></i>${u.home}`;
+  document.getElementById('btn-home2').innerHTML=`<i class="ti ti-home"></i>${u.home}`;
+  document.getElementById('btn-again').innerHTML=`<i class="ti ti-refresh" style="vertical-align:-2px;margin-right:4px"></i>${u.again}`;
+  document.getElementById('btn-recs2').innerHTML=`<i class="ti ti-trophy" style="vertical-align:-2px;margin-right:4px"></i>${u.allrec}`;
+  document.getElementById('lbl-level').textContent=u.level;
+  document.getElementById('lbl-words').textContent=u.words;
+  document.getElementById('lbl-lvl').textContent=u.lvl;
+  document.getElementById('lbl-streak').textContent=u.streak;
+  document.getElementById('ov-title').textContent=u.timeout;
+  document.getElementById('lbl-recstitle').textContent=u.recstitle;
+  document.getElementById('lbl-back').textContent=u.back;
+  document.getElementById('word-input').placeholder=u.placeholder;
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function goHome(){clearInterval(iv);hideLvlUp();showScreen('s-start')}
+
+// ── PARTÍCULAS ──
+function spawnParticles(x,y,color){
+  const p=document.getElementById('particles');
+  for(let i=0;i<18;i++){
+    const el=document.createElement('div');el.className='particle';
+    const size=4+Math.random()*6,angle=Math.random()*360,dist=40+Math.random()*80;
+    const dx=Math.cos(angle*Math.PI/180)*dist,dy=Math.sin(angle*Math.PI/180)*dist;
+    el.style.cssText=`width:${size}px;height:${size}px;background:${color};left:${x+dx}px;top:${y+dy}px;animation-delay:${Math.random()*.1}s;animation-duration:${.6+Math.random()*.5}s`;
+    p.appendChild(el);setTimeout(()=>el.remove(),1200);
+  }
+}
+function spawnCardParticles(color){
+  const r=document.getElementById('wcard').getBoundingClientRect();
+  spawnParticles(r.left+r.width/2,r.top+r.height/2,color);
+}
+
+// ── LEVEL UP ──
+let lvlUpTimer=null;
+function showLvlUp(newLv){
+  const u=UI[lang];
+  const overlay=document.getElementById('lvlup-overlay');
+  document.getElementById('luo-label').textContent=u.lvlLabel;
+  document.getElementById('luo-num').textContent=newLv;
+  document.getElementById('luo-sub').textContent=u.lvlSubs[Math.min(newLv-2,u.lvlSubs.length-1)];
+  overlay.classList.add('show');
+  spawnParticles(window.innerWidth/2,window.innerHeight/2,'#4f8ef7');
+  setTimeout(()=>spawnParticles(window.innerWidth/2,window.innerHeight/2,'#a78bfa'),150);
+  setTimeout(()=>spawnParticles(window.innerWidth/2,window.innerHeight/2,'#f472b6'),300);
+  clearTimeout(lvlUpTimer);
+  lvlUpTimer=setTimeout(()=>{overlay.classList.remove('show');nextWord()},2000);
+}
+function hideLvlUp(){document.getElementById('lvlup-overlay').classList.remove('show');clearTimeout(lvlUpTimer)}
+
+async function startGame(){
+  await loadR();
+  lv=1;wil=0;streak=0;maxStreak=0;
+  usedWords=new Set();sessionWords=[];
+  hideLvlUp();showScreen('s-game');nextWord();
+}
+
+function pickWord(){
+  const pool=WORDS[lang][Math.min(lv,10)];
+  let avail=pool.filter(w=>!usedWords.has(w));
+  if(!avail.length){pool.forEach(w=>usedWords.delete(w));avail=pool.slice()}
+  return avail[Math.floor(Math.random()*avail.length)];
+}
+
+function nextWord(){
+  locked=false;cw=pickWord();usedWords.add(cw);
+  renderChars(cw,'');
+  document.getElementById('wcard').className='word-card';
+  const inp=document.getElementById('word-input');
+  inp.value='';inp.disabled=false;
+  setTimeout(()=>inp.focus(),60);
+  const u=UI[lang];
+  document.getElementById('g-lv').textContent=lv;
+  document.getElementById('g-str').textContent=streak;
+  document.getElementById('g-prog').textContent=wil+' / '+PER_LV;
+  document.getElementById('g-lbar').style.width=(wil/PER_LV*100)+'%';
+  const rec=recs[cw];
+  document.getElementById('g-rec').innerHTML=rec
+    ?`${u.bestTime}: <span class="rec-val">${(rec/1000).toFixed(3)}s</span>`
+    :u.noRecord;
+  document.getElementById('g-res').classList.remove('show');
+  setTimer(LIMIT);
+  const b=document.getElementById('g-bar');b.style.width='0%';b.style.background='#22c55e';
+  ts=Date.now();clearInterval(iv);iv=setInterval(tick,16);
+}
+
+function setTimer(rem){
+  const el=document.getElementById('g-tim');
+  el.textContent=(Math.max(0,rem)/1000).toFixed(3)+'s';
+  el.className='timer-num '+(rem>2500?'t-safe':rem>1000?'t-warn':'t-danger');
+}
+
+function tick(){
+  const ms=Date.now()-ts,rem=LIMIT-ms;
+  setTimer(rem);
+  const p=Math.min(ms/LIMIT*100,100);
+  const b=document.getElementById('g-bar');
+  b.style.width=p+'%';
+  b.style.background=p<50?'#22c55e':p<80?'#ef9f27':'#ef4444';
+  if(ms>=LIMIT)gameOver();
+}
+
+function renderChars(word,typed){
+  document.getElementById('wdisplay').innerHTML=word.split('').map((c,i)=>{
+    let cl='ch';
+    if(i<typed.length)cl+=' '+(typed[i]===c?'ch-ok':'ch-err');
+    return`<span class="${cl}">${c.toUpperCase()}</span>`;
+  }).join('');
+}
+
+function onType(){
+  if(locked)return;
+  const t=document.getElementById('word-input').value.toLowerCase();
+  renderChars(cw,t);
+  if(t===cw)doCorrect();
+}
+
+async function doCorrect(){
+  locked=true;clearInterval(iv);
+  const ms=Date.now()-ts;
+  document.getElementById('wcard').classList.add('ok');
+  document.getElementById('word-input').disabled=true;
+  const isNew=!recs[cw]||ms<recs[cw];
+  if(isNew)recs[cw]=ms;
+  await saveR();
+  streak++;if(streak>maxStreak)maxStreak=streak;wil++;
+  const st=getStatus(ms);
+  sessionWords.push({word:cw,ms,isNew,statusText:st.text,statusColor:st.color});
+  const colors=ms<1800?['#22c55e','#4ade80']:ms<3500?['#4f8ef7','#93c5fd']:['#ef9f27','#fcd34d'];
+  spawnCardParticles(colors[0]);
+  if(ms<2000)setTimeout(()=>spawnCardParticles(colors[1]),120);
+  document.getElementById('g-str').textContent=streak;
+  document.getElementById('g-prog').textContent=wil+' / '+PER_LV;
+  document.getElementById('g-lbar').style.width=(wil/PER_LV*100)+'%';
+  const sg=document.getElementById('g-status');sg.textContent=st.text;sg.style.color=st.color;
+  document.getElementById('g-rtime').textContent=(ms/1000).toFixed(3)+'s';
+  const rb=document.getElementById('g-rbadge');
+  if(isNew){rb.textContent=UI[lang].newRecord;rb.style.display=''}else{rb.style.display='none'}
+  document.getElementById('g-res').classList.add('show');
+  setTimeout(()=>{
+    if(wil>=PER_LV){wil=0;lv++;showLvlUp(lv)}else nextWord();
+  },900);
+}
+
+function gameOver(){
+  if(locked)return;locked=true;clearInterval(iv);
+  document.getElementById('word-input').disabled=true;
+  document.getElementById('wcard').classList.add('fail');
+  spawnCardParticles('#ef4444');
+  setTimeout(showGameOver,700);
+}
+
+function showGameOver(){
+  const u=UI[lang];
+  document.getElementById('ov-word').textContent=cw.toUpperCase();
+  document.getElementById('ov-words').textContent=sessionWords.length;
+  document.getElementById('ov-lv').textContent=lv;
+  document.getElementById('ov-str').textContent=maxStreak;
+  const sl=document.getElementById('sess-list');
+  sl.innerHTML=sessionWords.length
+    ?`<div class="sess-hdr">${u.sessionHdr}</div>`+sessionWords.map(e=>`
+      <div class="si">
+        <span class="si-word">${e.word}</span>
+        <span class="si-right">
+          <span class="si-status" style="color:${e.statusColor}">${e.statusText}</span>
+          ${e.isNew?`<span class="si-nr">${u.newRecord}</span>`:''}
+          <span class="si-time">${(e.ms/1000).toFixed(3)}s</span>
+        </span>
+      </div>`).join('')
+    :'';
+  showScreen('s-over');
+}
+
+async function showRec(){await loadR();renderRecList();showScreen('s-rec')}
+function renderRecList(){
+  const el=document.getElementById('rec-list');
+  const entries=Object.entries(recs).sort((a,b)=>a[1]-b[1]);
+  if(!entries.length){el.innerHTML=`<div class="no-rec"><i class="ti ti-trophy" style="font-size:40px;display:block;margin-bottom:10px;color:#333"></i>${UI[lang].noRec}</div>`;return}
+  el.innerHTML=entries.map(([w,ms],i)=>`
+    <div class="rec-item">
+      <span class="ri-word">${w}</span>
+      <span style="display:flex;align-items:center">
+        <span class="ri-rank">#${i+1}</span>
+        <span class="ri-time">${(ms/1000).toFixed(3)}s</span>
+      </span>
+    </div>`).join('');
+}
+async function clearRec(){
+  if(!confirm(UI[lang].clearConfirm))return;
+  recs={};await saveR();renderRecList();
+}
+
+applyUI();
+loadR();
+</script>
+</body>
+</html>
